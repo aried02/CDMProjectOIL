@@ -1,0 +1,70 @@
+General Usage:
+write your code in a file called *fname*, coinsiting only of lines of 4 space
+separated integers, with these being instructions working as described in the
+pdf accompaniment. How you run your own custom-built program is as follows:
+
+python program.py *fname* -i <inputs> -d/v -s -o <outputs>
+
+The only required parts is the fname, -i and inputs. Explanation below:
+-i <inputs>:
+used to initialize your registers, starting at register 1 (reg 0 is the 1 reg, 
+only containing 1). <inputs> needs to have the form [x1, x2, ..., xn], even if just one argument needs to be [x].
+
+-d/v = -debug/-verbose:
+used to show debug or verbose text, which describes which instruction is running
+or being contracted (in the case of shortening loops) and contents of registers
+at each step
+
+-s = -slow:
+turns off optimization which turns off simple loop contraction, meaning things
+are just run in the obvious brute force way, can be done for fun or to check
+contraction is working correctly
+
+-o <outputs>:
+used to just output one or a few registers, in order printed at the end. If just
+one output can just be -o <output_reg> e.g. -o 4. If multiple needs to be format
+like "(o1, o2, ..., 0n)" INCLUDING QUOTES (the commmand line will interpret 
+parens on its own, so need quotes).
+
+
+For Examples:
+
+divmod.oil
+  pass in [x, y], returns x div y in reg 3, x % y in reg 6
+  
+  usage: python program.py examples/divmod.oil -i [*X*, *Y*] -o "(3, 6)"
+  
+  prints div result on first line, mod on second
+  DO NOT DO NEGATIVES PLEASE
+
+mod.oil
+  pass in [x, y] returns x % y only in reg 1
+  
+  usage: python program.py examples/mod.oil -i [*X*, *Y*] -o 1
+  
+  also don't use negatives plz
+
+mult.oil
+  pass in [x, y] with y POSITIVE, returns x*y in reg 4
+  
+  usage: python program.py examples/mult.oil -i [*X*, *Y*] -o 4
+  
+  works with negative x but not y
+
+mult_y_neg.oil
+  same exact as above, but works for negative y's
+  
+  usage: python program.py examples/mult_y_neg.oil -i [*X*, *Y*] -o 4
+  
+  just flips x/y signs and runs mult lmao v versatile
+
+smallest_factor.oil
+  actually kinda proud of this one, computes the smallest factor of input,
+  which can be used to determine primality, or if iterated, do a prime
+  factorization. Not all too efficient, on O(F) for input with smallest factor
+  = F, (really O(FlogN) if input is N, but eh), but don't try anything with
+  factor above like 10^6 cuz it gets real slow (just based on looping that
+  many times cuz python hella inefficient), but can do super large nums with
+  small-ish factors pretty well
+  
+  usage: python program.py examples/smallest_factor.oil -i [*N*] -o 3
