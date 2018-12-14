@@ -18,7 +18,6 @@ class Parser:
             rreg = int(self._lines[i][2])
             regMax = max(lreg, max(rreg, regMax))
         self._reg_max = regMax
-        print(regMax)
         # Now we know what to start additional registers needed for functions
         # at, and we just need to do string parsing basically
         # this is good for now, run other funcs
@@ -33,7 +32,7 @@ class Parser:
                 lines[i] = lines[i].split(" ")
 
         regMax = 0
-        for i in range(1, len(lines)):
+        for i in range(len(lines)):
             lreg = int(lines[i][1])
             rreg = int(lines[i][2])
             regMax = max(lreg, max(rreg, regMax))
@@ -61,7 +60,13 @@ class Parser:
         y = line[2]
         l2 = line[3]
         return (int(l1), int(x), int(y), int(l2))
-    
+
+    def delete_reg(self, line_number, reg1):
+        l = str(line_number+1)
+        r1 = str(reg1)
+        line = l + " " + r1 + " " + r1 + " " + l
+        return (line, int(l))
+
     def parse_one_func(self, line_number):
         # Essentially we just want to rename the registers inside the file
         # copy the designated input regs over to 1...n for n inputs
@@ -96,7 +101,6 @@ class Parser:
         line_counter = line_number
         line_number -= 1
         func_lines,maxReg = self.read_external_func(fname)
-        self._reg_max = self._reg_max + maxReg
         for line in func_lines:
             # We add line_number to everything (subbed one so addition works)
             # And we add intermediate to all regs
@@ -121,6 +125,11 @@ class Parser:
             coplines,newline = self.copy_reg(line_counter, i, j, intermediate)
             all_lines += coplines
             line_counter = newline
+        for i in range(0, maxReg+1):
+            j = i + intermediate
+            line,newline = self.delete_reg(line_counter, j)
+            all_lines.append(line)
+            line_counter = newline
         # Now we have modified this sufficiently, but outside program needs to
         # change other line numbers, so need to return which num to add
         # to everything
@@ -141,17 +150,27 @@ class Parser:
                 continue
             new_lines = self.parse_one_func(i)
             additive = len(new_lines) - 1
+            earlyline = [self._lines[0]]
+            for j in range(1, i):
+                if self._lines[j][0][0] not in "0123456789":
+                    earlyline.append(self._lines[j])
+                    continue
+                l1,x,y,l2 = self.parse_line(self._lines[j])
+                l1 = l1 + additive if l1 > i else l1
+                l2 = l2 + additive if l2 > i else l2
+                line = str(l1) + " "+str(x)+" "+str(y)+" "+ str(l2)
+                earlyline.append(line.split(" "))
             laterline = []
             for j in range(i+1, len(self._lines)):
                 if self._lines[j][0][0] not in "0123456789":
                     laterline.append(self._lines[j])
                     continue
                 l1,x,y,l2 = self.parse_line(self._lines[j])
-                l1 = l1 + additive
-                l2 = l2 + additive
+                l1 = l1 + additive if l1 > i else l1
+                l2 = l2 + additive if l2 > i else l2
                 line = str(l1) + " "+str(x)+" "+str(y)+" "+ str(l2)
                 laterline.append(line.split(" "))
-            self._lines = self._lines[:i] + new_lines + laterline
+            self._lines = earlyline + new_lines + laterline
 
 
 if __name__ == '__main__':
