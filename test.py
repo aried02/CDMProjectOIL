@@ -31,4 +31,16 @@ def A(i, n):
             s.append(icur)
             s.append(ncur-1)
     return s.pop()
-print A(3, 8)
+
+def pair(x, y):
+    if x < y:
+        return y**2 + x
+    return x**2 + x + y
+def unpair(z):
+    s = int(z**0.5)
+    if z - s**2 < s:
+        return (z - s**2, s)
+    else:
+        return (s, z - s**2 - s)
+import sys
+print AckCor(int(sys.argv[1]), int(sys.argv[2]))
