@@ -23,7 +23,7 @@ contraction is working correctly
 -o <outputs>:
 used to just output one or a few registers, in order printed at the end. If just
 one output can just be -o <output_reg> e.g. -o 4. If multiple needs to be format
-like "(o1, o2, ..., 0n)" INCLUDING QUOTES (the commmand line will interpret 
+like "(o1, o2, ..., on)" INCLUDING QUOTES (the commmand line will interpret 
 parens on its own, so need quotes).
 
 
@@ -68,3 +68,77 @@ smallest_factor.oil
   small-ish factors pretty well
   
   usage: python program.py examples/smallest_factor.oil -i [*N*] -o 3
+
+parser/sqrt.oil
+  much more proud of this boi. Uses binary search to find the floor(sqrt(N))
+
+  usage: python program.py PARSER/sqrt.oil -i [*N*] -o 7
+
+parser/ackermann.oil
+  does ackermann but only for small inputs (if (0, m) can get larger, but 
+  typically only when result <= 13 or so, cuz stack seems to get giant)
+
+  usage: python program.py PARSER/ackermann.oil -i [*N*,*M*] -o 11
+
+parser/pair.oil
+  pairs two integers based on func described below
+
+  usage: python program.py PARSER/pair.oil -i [*A*, *B*] -o 7
+
+parser/unpair.oil
+  unpairs a pair and outputs etc.
+
+  usage: python program.py PARSER/unpair.oil -i [*Z*] -o "(5,6)"
+
+PARSER:
+To use the parser you basically just call
+python parser.py <INPUT>.pre <OUTPUT>.oil
+
+The parser will extend functions out and fix line and register numbers, as well
+as copy appropriate values over to temp registers for use inside the functions
+All temp registers share, so register complexity is actually really solid (and
+thus so is the overall space complexity of the machine itself). To actually
+compile is a bit more space complex cuz we have to store all the strings. But to
+write a .pre file you can call functions via:
+<fname_of_func>.oil <in1> ... <inn> : <out_reg_1> ... <out_reg_n> : <out1> etc.
+The in1...n are space separated register numbers that represent the inputs in
+THIS program that you want to copy to input 1, 2, ..., n in the functions
+program. The out_reg_1 etc. are the registers in the OTHER program that you
+want to map to out1,...,n respectively. For example, say I have a function
+add.oil which simply adds two numbers and stores the result in it's register 1,
+I want to add register 4 and 7 in my program and store the result in register 9
+I would write:
+add.oil 4 7 : 1 : 9
+After executing this the program jumps to the next line after it, so there is no
+opportunity to case on output directly, this must be done on subsequent lines.
+One caveat is the function program you are importing MUST jump to 1+lastline to
+halt or it gets super duper messed up cuz the lines will be off. For some 
+examples of pre and post computed files check the parser folder. ALSO note b/c
+of my ineptitude that the functions you are parsing with MUST BE in the same 
+directory as the program you are parsing, which must be run in the PARSER 
+directory (i.e. parser can only load files in the same directory as it). Don't
+ask why. It could theoretically be in other directories if you write out the
+full location (i.e. /usr/abe/home/add.oil ...) but haven't tested that at all
+
+I made this whole parser thing just to get the small satisfaction of writing
+the ackermann function for fun. It is slightly over 3100 lines long in pure
+OIL, and can only run up to when the result is about 13 or it'll die (the stack
+from the pairing function gets SUPER big int, and then unpairing to do sqrt
+takes quite a bit for super big ints). The precomputed version is in 
+ackermann.pre, and is still fairly unreadable. It is based on Stackermann from
+a paper (somehow this was important enough to make a paper?) which makes
+ackermann imperative but basically just does it by making the callback stack
+within the function. See 
+https://www.sciencedirect.com/science/article/pii/0304397588900461
+for the source, but yah its p straightforward. 
+
+The sqrt function is my pride and joy and what helped me test the compiler. 
+It does a simple binary search to find the floor of the square root, and then
+this is used in the integer unpairing function, which was used with pairing
+to make a stack for ackermann. It was based off of "Elegant Pairing"
+http://szudzik.com/ElegantPairing.pdf
+Which is actually pretty cool cause it uses the space more efficient and has 
+interesting properties that I didn't use at all, but I'm sure would be useful
+in other scenarios. But ya I might add some of the functions how to use above
+but most of it is pretty straightforward, and you can figure out which is
+supposed to be output by the result.
